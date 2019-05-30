@@ -74,7 +74,7 @@ void ReducedBodyStateInterface::writeFromMessage(dwl::ReducedBodyState& state,
 					  	  	  	  	  	  		 const dwl_msgs::ReducedBodyState& msg)
 {
 	if (!is_system_)
-		printf(YELLOW "Warning: you cannot write the dwl_msg::ReducedBodyState "
+                printf(YELLOW_ "Warning: you cannot write the dwl_msg::ReducedBodyState "
 				"because it wasn't define the FloatingBaseSystem\n" COLOR_RESET);
 
 	// Filling the time
