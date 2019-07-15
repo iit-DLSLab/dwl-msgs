@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   dwl
   roscpp
   rospy
+  std_msgs
   geometry_msgs
   tf
   tf_conversions
@@ -46,7 +47,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS  include
   LIBRARIES  ${PROJECT_NAME}
-  CATKIN_DEPENDS  roscpp message_runtime geometry_msgs dwl)
+  CATKIN_DEPENDS  roscpp message_runtime std_msgs geometry_msgs dwl)
 
 
 # Setting flags for optimization

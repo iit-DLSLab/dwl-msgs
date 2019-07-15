@@ -132,16 +132,28 @@ void ControllerCommons::initStateEstimationSubscriber(ros::NodeHandle node)
 
 
 void ControllerCommons::initMotionPlanSubscriber(ros::NodeHandle node,
-												 dwl::model::FloatingBaseSystem& system)
+                                                dwl::model::FloatingBaseSystem& system)
 {
-	plan_sub_ = node.subscribe<dwl_msgs::WholeBodyTrajectory> ("plan", 1,
-			&ControllerCommons::setPlanCB, this, ros::TransportHints().tcpNoDelay());
+        plan_sub_ = node.subscribe<dwl_msgs::WholeBodyTrajectory> ("plan", 1,
+                        &ControllerCommons::setPlanCB, this, ros::TransportHints().tcpNoDelay());
 
+
+//        std::cout<<"init controller command sub"<<std::endl;
+//        pause_sub_= node.subscribe<std_msgs::Bool>(hyq,1,
+//                        &ControllerCommons::PauseExecution, this);
+//        std::cout<<"init controller command sub done"<<std::endl;
 	// Setting the floating-base system info
 	system_ = system;
 	wb_iface_.reset(system_);
 }
 
+void ControllerCommons::initControllerCommandSubscriber(ros::NodeHandle node){
+  //std::cout<<"init controller command sub"<<std::endl;
+  const std::string hyq="hyq/pause";
+  pause_sub_= node.subscribe<std_msgs::Bool>(std::string("hyq/pause"),1,
+                  &ControllerCommons::PauseExecution, this);
+  //std::cout<<"init controller command sub done"<<std::endl;
+}
 
 void ControllerCommons::publishControllerState(const ros::Time& time,
 											   const dwl::WholeBodyState& current_state,
@@ -394,18 +406,32 @@ void ControllerCommons::setPlan(const dwl_msgs::WholeBodyTrajectory& plan)
 
 void ControllerCommons::updatePlan(dwl::WholeBodyState& state)
 {
+
 	// This is a sanity check. If there is not trajectory information, we go out immediately
 	if (num_traj_points_ == 0)
 		return;
-
-	// Getting the actual desired whole-body state
-	dwl_msgs::WholeBodyState msg = plan_.trajectory[trajectory_counter_];
-
-	// Converting the WholeBodyState msg
-	wb_iface_.writeFromMessage(state, msg);
-
+        bool r=true;
+        // Getting the actual desired whole-body state
+        dwl_msgs::WholeBodyState msg = plan_.trajectory[trajectory_counter_];
+        if (flag_pause_)
+        r=NotSafePosition();
+        if (r==false) // i need to pause the robot and clean velocity and acceleration
+        {
+          for(int i=0; i<6; i++)
+          {
+           msg.base[i].velocity=0;
+           msg.base[i].acceleration=0;
+          }
+        }
+        else
+        {
+          trajectory_counter_++;
+        }
+        // Converting the WholeBodyState msg
+         wb_iface_.writeFromMessage(state, msg);
 	// The trajectory counter is set to zero once the trajectory is finished
-	trajectory_counter_++;
+
+
 	if (trajectory_counter_ >= num_traj_points_) {
 		// Resetting values
 		num_traj_points_ = 0;
@@ -436,5 +462,45 @@ void ControllerCommons::setPlanCB(const dwl_msgs::WholeBodyTrajectoryConstPtr& m
 	plan_buffer_.writeFromNonRT(*msg);
 	new_plan_ = true;
 }
+int ControllerCommons::SafeStopCondition()
+{
+ while(trajectory_counter_ < num_traj_points_)
+ {
+   dwl_msgs::WholeBodyState msg=plan_.trajectory[trajectory_counter_];
+   dwl::WholeBodyState state;
+   wb_iface_.writeFromMessage(state,msg);
+   int a=0;
+   for (int i=0; i<4; i++)
+   {
+     int force=msg.contacts[i].wrench.force.z;
+     if (force>50)
+       a++;
+    }
 
+   if (a==4)
+     {
+      return trajectory_counter_;
+     }
+   trajectory_counter_++;
+ }
+}
+
+
+bool ControllerCommons::NotSafePosition()
+{
+  bool a=true;
+  int safe_position=SafeStopCondition();
+  if (trajectory_counter_ > safe_position)
+   a=false;
+  return a;
+}
+void ControllerCommons::PauseExecution(std_msgs::Bool msg)
+{
+  std::cout<<"inside callback"<<std::endl;
+  flag_pause_=msg.data;
+
+}
 } //@namespace dwl_msgs
+
+
+

@@ -14,7 +14,7 @@
 #include <sensor_msgs/Imu.h>
 #include <tf2_msgs/TFMessage.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-
+#include "std_msgs/Bool.h"
 namespace dwl_msgs
 {
 
@@ -83,6 +83,8 @@ class ControllerCommons
 		 */
 		void initMotionPlanSubscriber(ros::NodeHandle node,
 									  dwl::model::FloatingBaseSystem& system);
+
+                void initControllerCommandSubscriber(ros::NodeHandle node);
 
 		/**
 		 * @brief Publishes the controller state
@@ -169,9 +171,15 @@ class ControllerCommons
 		 * @param dwl::rbd::BodyVector& Updated end-effector acceleration
 		 */
 		void updatePlan(dwl::WholeBodyState& state);
+		int SafeStopCondition();
+		bool NotSafePosition();
+
 
 
 	private:
+                bool flag_pause_;
+                void PauseExecution(std_msgs::Bool msg);
+
 		/** @brief Robot state message interfaces */
 		dwl_msgs::WholeBodyStateInterface wb_iface_;
 
@@ -227,7 +235,10 @@ class ControllerCommons
 		dwl_msgs::WholeBodyTrajectory plan_;
 
 		/** @brief Motion plan subscriber */
-		ros::Subscriber plan_sub_;
+                ros::Subscriber plan_sub_;
+
+                /** @brief Controller command subscriber */
+                ros::Subscriber pause_sub_;
 
 		/** @brief Realtime buffer for the motion plan message */
 		realtime_tools::RealtimeBuffer<dwl_msgs::WholeBodyTrajectory> plan_buffer_;
