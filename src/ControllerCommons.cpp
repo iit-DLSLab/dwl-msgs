@@ -149,8 +149,7 @@ void ControllerCommons::initMotionPlanSubscriber(ros::NodeHandle node,
 
 void ControllerCommons::initControllerCommandSubscriber(ros::NodeHandle node){
   //std::cout<<"init controller command sub"<<std::endl;
-  const std::string hyq="hyq/pause";
-  pause_sub_= node.subscribe<std_msgs::Bool>(std::string("hyq/pause"),1,
+    pause_sub_= node.subscribe<std_msgs::Bool>(std::string("pause"),1,
                   &ControllerCommons::PauseExecution, this);
   //std::cout<<"init controller command sub done"<<std::endl;
 }
