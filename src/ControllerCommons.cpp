@@ -407,16 +407,16 @@ void ControllerCommons::setPlan(const dwl_msgs::WholeBodyTrajectory& plan)
 void ControllerCommons::updatePlan(dwl::WholeBodyState& state)
 {
 
-	std::cout<<"counter "<<trajectory_counter_<<std::endl;
+        //
 	// This is a sanity check. If there is not trajectory information, we go out immediately
 	if (num_traj_points_ == 0)
 		return;
+        std::cout<<"counter "<<trajectory_counter_<<std::endl;
     bool r=true;
     // Getting the actual desired whole-body state
     dwl_msgs::WholeBodyState msg = plan_.trajectory[trajectory_counter_];
     if (flag_pause_){
     	r=NotSafePosition();
-    	flag_pause_ = false;
     }
     
     if (r==false) // i need to pause the robot and clean velocity and acceleration
@@ -468,9 +468,12 @@ void ControllerCommons::setPlanCB(const dwl_msgs::WholeBodyTrajectoryConstPtr& m
 }
 int ControllerCommons::SafeStopCondition()
 {
-int counter = trajectory_counter_;
+ int counter = trajectory_counter_;
+ //std::cout<<"counter in Safe"<<counter<<std::endl;
  while(counter < num_traj_points_)
  {
+
+   //std::cout<<"counter nel while "<<counter<<std::endl;
    dwl_msgs::WholeBodyState msg=plan_.trajectory[counter];
    //dwl::WholeBodyState state;
    //wb_iface_.writeFromMessage(state,msg);
@@ -478,6 +481,7 @@ int counter = trajectory_counter_;
    for (int i=0; i<4; i++)
    {
      int force=msg.contacts[i].wrench.force.z;
+   //  std::cout<<"force nel while "<<force<<std::endl;
      if (force>50)
        a++;
     }
@@ -494,7 +498,11 @@ int counter = trajectory_counter_;
 bool ControllerCommons::NotSafePosition()
 {
   bool isPositionUnsafe=true;
-  int safe_traj_counter =SafeStopCondition();
+  if(!SafePositionAlreadyComputed_)
+  {int safe_traj_counter =SafeStopCondition();
+   SafePositionAlreadyComputed_=true;
+   std::cout<<"SafePositionAlreadyComputed_"<<SafePositionAlreadyComputed_<<std::endl;
+  }
   if (trajectory_counter_ > safe_traj_counter)
    isPositionUnsafe=false;
 

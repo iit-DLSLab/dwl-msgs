@@ -178,6 +178,8 @@ class ControllerCommons
 
 	private:
                 bool flag_pause_;
+                bool SafePositionAlreadyComputed_=false;
+                int safe_traj_counter;
                 void PauseExecution(std_msgs::Bool msg);
 
 		/** @brief Robot state message interfaces */
