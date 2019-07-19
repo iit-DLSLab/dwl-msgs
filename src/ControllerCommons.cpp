@@ -407,28 +407,32 @@ void ControllerCommons::setPlan(const dwl_msgs::WholeBodyTrajectory& plan)
 void ControllerCommons::updatePlan(dwl::WholeBodyState& state)
 {
 
+	std::cout<<"counter "<<trajectory_counter_<<std::endl;
 	// This is a sanity check. If there is not trajectory information, we go out immediately
 	if (num_traj_points_ == 0)
 		return;
-        bool r=true;
-        // Getting the actual desired whole-body state
-        dwl_msgs::WholeBodyState msg = plan_.trajectory[trajectory_counter_];
-        if (flag_pause_)
-        r=NotSafePosition();
-        if (r==false) // i need to pause the robot and clean velocity and acceleration
-        {
-          for(int i=0; i<6; i++)
-          {
-           msg.base[i].velocity=0;
-           msg.base[i].acceleration=0;
-          }
-        }
-        else
-        {
-          trajectory_counter_++;
-        }
-        // Converting the WholeBodyState msg
-         wb_iface_.writeFromMessage(state, msg);
+    bool r=true;
+    // Getting the actual desired whole-body state
+    dwl_msgs::WholeBodyState msg = plan_.trajectory[trajectory_counter_];
+    if (flag_pause_){
+    	r=NotSafePosition();
+    	flag_pause_ = false;
+    }
+    
+    if (r==false) // i need to pause the robot and clean velocity and acceleration
+    {
+      for(int i=0; i<6; i++)
+      {
+       msg.base[i].velocity=0;
+       msg.base[i].acceleration=0;
+      }
+    }
+    else
+    {
+      trajectory_counter_++;
+    }
+    // Converting the WholeBodyState msg
+     wb_iface_.writeFromMessage(state, msg);
 	// The trajectory counter is set to zero once the trajectory is finished
 
 
@@ -464,11 +468,12 @@ void ControllerCommons::setPlanCB(const dwl_msgs::WholeBodyTrajectoryConstPtr& m
 }
 int ControllerCommons::SafeStopCondition()
 {
- while(trajectory_counter_ < num_traj_points_)
+int counter = trajectory_counter_;
+ while(counter < num_traj_points_)
  {
-   dwl_msgs::WholeBodyState msg=plan_.trajectory[trajectory_counter_];
-   dwl::WholeBodyState state;
-   wb_iface_.writeFromMessage(state,msg);
+   dwl_msgs::WholeBodyState msg=plan_.trajectory[counter];
+   //dwl::WholeBodyState state;
+   //wb_iface_.writeFromMessage(state,msg);
    int a=0;
    for (int i=0; i<4; i++)
    {
@@ -479,25 +484,28 @@ int ControllerCommons::SafeStopCondition()
 
    if (a==4)
      {
-      return trajectory_counter_;
+      return counter;
      }
-   trajectory_counter_++;
+   counter++;
  }
 }
 
 
 bool ControllerCommons::NotSafePosition()
 {
-  bool a=true;
-  int safe_position=SafeStopCondition();
-  if (trajectory_counter_ > safe_position)
-   a=false;
-  return a;
+  bool isPositionUnsafe=true;
+  int safe_traj_counter =SafeStopCondition();
+  if (trajectory_counter_ > safe_traj_counter)
+   isPositionUnsafe=false;
+
+std::cout<<"safe traj counter "<<safe_traj_counter<<std::endl;
+std::cout<<"isPositionUnsafe "<<isPositionUnsafe<<std::endl;
+return isPositionUnsafe;
 }
 void ControllerCommons::PauseExecution(std_msgs::Bool msg)
 {
-  std::cout<<"inside callback"<<std::endl;
   flag_pause_=msg.data;
+  std::cout<<"===============> pause is "<<flag_pause_<<std::endl;
 
 }
 } //@namespace dwl_msgs
