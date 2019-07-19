@@ -10,7 +10,8 @@ ControllerCommons::ControllerCommons() : init_base_state_(false), new_plan_(fals
 		init_controller_state_pub_(false), init_robot_state_pub_(false),
 		init_odom_state_pub_(false), init_imu_state_pub_(false)
 {
-
+	pause_sub_= nh_.subscribe<std_msgs::Bool>(std::string("/hyq/pause"),1,
+                  &ControllerCommons::PauseExecution, this);
 }
 
 
@@ -149,8 +150,8 @@ void ControllerCommons::initMotionPlanSubscriber(ros::NodeHandle node,
 
 void ControllerCommons::initControllerCommandSubscriber(ros::NodeHandle node){
   //std::cout<<"init controller command sub"<<std::endl;
-    pause_sub_= node.subscribe<std_msgs::Bool>(std::string("pause"),1,
-                  &ControllerCommons::PauseExecution, this);
+  //  pause_sub_= node.subscribe<std_msgs::Bool>(std::string("pause"),1,
+  //                &ControllerCommons::PauseExecution, this);
   //std::cout<<"init controller command sub done"<<std::endl;
 }
 

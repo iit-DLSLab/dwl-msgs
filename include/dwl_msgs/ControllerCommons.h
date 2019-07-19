@@ -240,6 +240,8 @@ class ControllerCommons
                 /** @brief Controller command subscriber */
                 ros::Subscriber pause_sub_;
 
+                ros::NodeHandle nh_;
+
 		/** @brief Realtime buffer for the motion plan message */
 		realtime_tools::RealtimeBuffer<dwl_msgs::WholeBodyTrajectory> plan_buffer_;
 
