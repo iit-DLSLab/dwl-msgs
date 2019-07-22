@@ -177,7 +177,7 @@ class ControllerCommons
 
 
 	private:
-                bool flag_pause_;
+                bool pause_=false;
                 bool SafePositionAlreadyComputed_=false;
                 int safe_traj_counter;
                 void PauseExecution(std_msgs::Bool msg);

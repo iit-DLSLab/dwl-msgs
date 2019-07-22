@@ -409,17 +409,18 @@ void ControllerCommons::updatePlan(dwl::WholeBodyState& state)
 
         //
 	// This is a sanity check. If there is not trajectory information, we go out immediately
-	if (num_traj_points_ == 0)
+     if (num_traj_points_ == 0)
 		return;
-        std::cout<<"counter "<<trajectory_counter_<<std::endl;
-    bool r=true;
+    //bool ContinueExecution=true;
     // Getting the actual desired whole-body state
     dwl_msgs::WholeBodyState msg = plan_.trajectory[trajectory_counter_];
-    if (flag_pause_){
-    	r=NotSafePosition();
-    }
-    
-    if (r==false) // i need to pause the robot and clean velocity and acceleration
+    //if (flag_pause_){
+    //	r=NotSafePosition();
+    //}
+    //
+    //if (ContinueExecution==false) // i need to pause the robot and clean velocity and acceleration
+    //{
+    if (pause_)
     {
       for(int i=0; i<6; i++)
       {
@@ -473,15 +474,18 @@ int ControllerCommons::SafeStopCondition()
  while(counter < num_traj_points_)
  {
 
-   //std::cout<<"counter nel while "<<counter<<std::endl;
+   std::cout<<"counter nel while "<<counter<<std::endl;
    dwl_msgs::WholeBodyState msg=plan_.trajectory[counter];
+   std::cout<<"base position"<<msg.base[3].position<<std::endl;
+
    //dwl::WholeBodyState state;
    //wb_iface_.writeFromMessage(state,msg);
    int a=0;
    for (int i=0; i<4; i++)
    {
-     int force=msg.contacts[i].wrench.force.z;
-   //  std::cout<<"force nel while "<<force<<std::endl;
+     double force=msg.contacts[i].wrench.force.z;
+     std::cout<<"force nel while "<<force<<std::endl;
+     std::cout<<"base position nel while"<<msg.base[3].position<<std::endl;
      if (force>50)
        a++;
     }
@@ -512,8 +516,8 @@ return isPositionUnsafe;
 }
 void ControllerCommons::PauseExecution(std_msgs::Bool msg)
 {
-  flag_pause_=msg.data;
-  std::cout<<"===============> pause is "<<flag_pause_<<std::endl;
+  pause_=msg.data;
+
 
 }
 } //@namespace dwl_msgs
