@@ -84,7 +84,7 @@ class ControllerCommons
 		void initMotionPlanSubscriber(ros::NodeHandle node,
 									  dwl::model::FloatingBaseSystem& system);
 
-                void initControllerCommandSubscriber(ros::NodeHandle node);
+
 
 		/**
 		 * @brief Publishes the controller state

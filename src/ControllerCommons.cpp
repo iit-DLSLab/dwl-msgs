@@ -148,12 +148,7 @@ void ControllerCommons::initMotionPlanSubscriber(ros::NodeHandle node,
 	wb_iface_.reset(system_);
 }
 
-void ControllerCommons::initControllerCommandSubscriber(ros::NodeHandle node){
-  //std::cout<<"init controller command sub"<<std::endl;
-  //  pause_sub_= node.subscribe<std_msgs::Bool>(std::string("pause"),1,
-  //                &ControllerCommons::PauseExecution, this);
-  //std::cout<<"init controller command sub done"<<std::endl;
-}
+
 
 void ControllerCommons::publishControllerState(const ros::Time& time,
 											   const dwl::WholeBodyState& current_state,
@@ -442,6 +437,7 @@ void ControllerCommons::updatePlan(dwl::WholeBodyState& state)
 		num_traj_points_ = 0;
 		trajectory_counter_ = 0;
 	}
+
 }
 
 
@@ -467,6 +463,7 @@ void ControllerCommons::setPlanCB(const dwl_msgs::WholeBodyTrajectoryConstPtr& m
 	plan_buffer_.writeFromNonRT(*msg);
 	new_plan_ = true;
 }
+
 int ControllerCommons::SafeStopCondition()
 {
  int counter = trajectory_counter_;
